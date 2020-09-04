@@ -1,0 +1,87 @@
+---
+title: "Quakes Pitch"
+author: "Juan Carlos Inclán"
+date: "4/9/2020"
+output: ioslides_presentation
+---
+
+## Introduction
+
+The following presentation is about the new app I devolved to know the mean, standard deviation and past locations of quakes in Fiji. Its finality is to give an idea of how devastating is the quakes in Fiji.
+
+In the following slides, will show the origin of the data and the code of the yi.R and server.R
+
+The Shiny app uses the quakes data set from the datasets library in R. The data contains 5 columns that are the following:
+
+1. lat=Latitude of the event
+2. long=Longitude of the event
+3. depth=Depth (km)
+4. mag=Richter Magnitude
+5. stations= Number of stations reporting
+
+
+## ui.R Code
+```{r, eval=FALSE}
+library(shiny)
+library(plotly)
+
+shinyUI(fluidPage(
+    titlePanel("Fiji Quakes Plot per location"),
+    sidebarLayout(
+     sidebarPanel(
+         numericInput("numeric", "How many quakes should be plotted?",
+                      value=500, min=1, max=1000, step=1),
+     ),
+    mainPanel(
+        h3("Quakes magnitude mean"),
+        textOutput("mean1"),
+        h3("Quakes magnitude Standard deviation"),
+        textOutput("sd1"),
+        h3("Fiji's quakes are plotted by longitude and lattitude. The different coloration that is appretiated is due the number of station that reported the quake. This will be useful in a map of Fiji in order to locate where it started."),
+        plotlyOutput("plot1")
+        )
+    )
+))
+```
+
+## server.R Code
+```{r, eval=FALSE}
+library(shiny)
+library(plotly)
+
+shinyServer(function(input, output){
+    
+    mean1<-reactive({
+        observations<-input$numeric
+        mean(quakes$mag[1:observations])
+    })
+    
+    output$mean1<-renderText({
+        mean1()
+    })
+    sd1<-reactive({
+        observations<-input$numeric
+        sd(quakes$mag[1:observations])
+    })
+```
+***    
+```{r, eval=FALSE}   
+output$sd1<-renderText({
+        sd1()
+    })
+
+output$plot1<-renderPlotly({
+    number_of_points<-input$numeric
+    xlab<-ifelse(input$show_xlab, "Longitude", "")
+    ylab<-ifelse(input$show_ylab, "Latitude", "")
+    main<-ifelse(input$show_title, "Fiji Quakes axis map", "")
+    plot_ly(quakes[1:number_of_points,], x = ~long, y = ~lat, 
+    type = "scatter", color = ~factor(stations))
+        })    
+})
+
+```    
+
+
+
+
